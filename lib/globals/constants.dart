@@ -1,2 +1,2 @@
 
-const apiBearerToken = "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";
+const apiBearerToken = "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";

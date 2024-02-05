@@ -67,6 +67,8 @@ class FlutterIssueListController {
           ref.read(firstLoadingProvider.notifier).state = false;
         }
       } else {
+        ref.read(isLoadingProvider.notifier).state = false;
+        ref.read(firstLoadingProvider.notifier).state = false;
         _alerts.snackBar(
           massage: returnedDataModel.errorMessage.toString(),
           isSuccess: false,
