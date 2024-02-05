@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_list_issues/globals/utils.dart';
+import 'package:flutter_list_issues/screens/list_screen/controller/flutter_issue_list_controller.dart';
 import 'package:flutter_list_issues/screens/list_screen/models/flutter_issue_model.dart';
 import 'package:flutter_list_issues/screens/list_screen/provider/flutter_issue_list_providers.dart';
+import 'package:flutter_list_issues/screens/list_screen/widgets/list_tile_widget.dart';
+import 'package:flutter_list_issues/screens/list_screen/widgets/search_bar_label_item_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 class FlutterListIssueScreen extends ConsumerStatefulWidget {
@@ -15,6 +18,43 @@ class FlutterListIssueScreen extends ConsumerStatefulWidget {
 }
 
 class _FlutterListIssueScreenState extends ConsumerState<FlutterListIssueScreen> {
+  late TextEditingController searchController;
+  late FlutterIssueListController flutterIssueListController;
+  final ScrollController _scrollController = ScrollController();
+  final Utils utils = Utils();
+
+  @override
+  void initState() {
+    super.initState();
+    searchController = TextEditingController();
+    flutterIssueListController = FlutterIssueListController(context: context, ref: ref);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      flutterIssueListController.getPreparedFlutterIssueList();
+    });
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    searchController.dispose();
+    _scrollController.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      bool loading = ref.read(isLoadingProvider);
+      if (!loading) {
+        ref.read(isLoadingProvider.notifier).state = true;
+      }
+
+      // Load the next batch of items when the user reaches the end of the list
+      Future.delayed(const Duration(milliseconds: 20), () {
+        flutterIssueListController.getPreparedFlutterIssueList();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,6 +67,7 @@ class _FlutterListIssueScreenState extends ConsumerState<FlutterListIssueScreen>
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 3.w),
@@ -44,137 +85,155 @@ class _FlutterListIssueScreenState extends ConsumerState<FlutterListIssueScreen>
               SizedBox(
                 height: 2.h,
               ),
+
+              // ClipRRect(
+              //   borderRadius: BorderRadius.circular(15.sp),
+              //   child: TextFormField(
+              //     controller: searchController,
+              //     decoration: InputDecoration(
+              //       filled: true,
+              //       fillColor: Colors.white,
+              //       hintText: "Label",
+              //       hintStyle: TextStyle(
+              //         fontSize: 11.sp,
+              //       ),
+              //       border: InputBorder.none,
+              //       errorBorder: InputBorder.none,
+              //       focusedBorder: InputBorder.none,
+              //       disabledBorder: InputBorder.none,
+              //       enabledBorder: InputBorder.none,
+              //       focusedErrorBorder: InputBorder.none,
+              //       prefixIcon: const Icon(
+              //         Icons.search,
+              //         color: Colors.lightBlueAccent,
+              //       ),
+              //     ),
+              //     onChanged: (val) {
+              //       flutterIssueListController.filterList(val);
+              //       // ref.read(flutterIssueListProvider.notifier).search(val);
+              //     },
+              //     onFieldSubmitted: (val) {
+              //       flutterIssueListController.filterList(val);
+              //       // ref.read(flutterIssueListProvider.notifier).search(val);
+              //     },
+              //   ),
+              // ),
+
+              /// As the requirement is not clear to me, I am commenting out the search bar by user
+              /// which will filter the issues
+              /// the below widget is a filter container consisting of all available labels
+              /// in the repo by which clicking on each label will do the filtering
+
               Consumer(
                 builder: (BuildContext context, WidgetRef ref, Widget? child) {
-                  AsyncValue<List<FlutterIssueModel>> asyncIssues =
-                      ref.watch(flutterIssueListProvider);
-                  return asyncIssues.when(data: (issues) {
-                    return ListView.separated(
-                      itemBuilder: (context, index) {
-                        return Container(
-                          decoration: const BoxDecoration(color: Colors.white),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      children: [
-                                        SizedBox(
-                                          width: 50.w,
-                                          child: Text(
-                                            issues[index].title,
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5.sp,
-                                        ),
-                                        Text(
-                                          convertToShortString(issues[index].body),
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          convertDateFormat(issues[index].creationDate),
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5.sp,
-                                        ),
-                                        Text(
-                                          issues[index].authorName,
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 1.h,
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: issues[index]
-                                      .labels
-                                      .map(
-                                        (e) => Padding(
-                                          padding: EdgeInsets.only(right: 2.w),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(15.sp),
-                                              color: hexStringToColor(e.labelColor),
-                                            ),
-                                            child: Center(
-                                              child: Padding(
-                                                padding: EdgeInsets.all(5.sp),
-                                                child: Text(
-                                                  e.name,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      itemCount: issues.length,
-                      shrinkWrap: true,
-                      primary: false,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return Container(
-                          height: 1.sp,
-                          decoration: const BoxDecoration(
-                            color: Colors.grey,
-                          ),
-                        );
-                      },
-                    );
-                  }, error: (e, s) {
-                    return Center(
-                      child: SizedBox(
-                        width: 80.w,
-                        child: Text(e.toString()),
-                      ),
-                    );
-                  }, loading: () {
-                    return const Center(
+                  List<FlutterIssueLabelModel> labels = ref.watch(labelListToFilterProvider);
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(15.sp),
+                    child: Container(
+                      height: 6.h,
+                      width: 97.w,
+                      decoration: BoxDecoration(
+                          color: Colors.white, borderRadius: BorderRadius.circular(15.sp)),
                       child: Padding(
-                        padding: EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            const Icon(
+                              Icons.search,
+                              color: Colors.lightBlueAccent,
+                            ),
+                            labels.isNotEmpty
+                                ? SizedBox(
+                                    height: 6.h,
+                                    width: 75.w,
+                                    child: ListView.builder(
+                                      itemBuilder: (context, index) {
+                                        return SearchBarLabelItemWidget(
+                                          labelModel: labels[index],
+                                          onTap: () {
+                                            flutterIssueListController.filterList(labels[index].name);
+                                          },
+                                          utils: utils,
+                                        );
+                                      },
+                                      itemCount: labels.length,
+                                      scrollDirection: Axis.horizontal,
+                                      shrinkWrap: true,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Please wait...",
+                                  ),
+                            InkWell(
+                                onTap: () {
+                                  flutterIssueListController.filterList("");
+                                },
+                                child: const Icon(
+                                  Icons.clear,
+                                  color: Colors.red,
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              SizedBox(
+                height: 2.h,
+              ),
+              Consumer(
+                builder: (BuildContext context, WidgetRef ref, Widget? child) {
+                  List<FlutterIssueModel> flutterIssueList =
+                      ref.watch(flutterIssueListToViewProvider);
+                  List<FlutterIssueModel> flutterIssueToHold =
+                      ref.watch(flutterIssueListToHoldProvider);
+                  bool isLoading = ref.watch(isLoadingProvider);
+                  bool firstLoading = ref.watch(firstLoadingProvider);
+                  if (firstLoading) {
+                    return Padding(
+                      padding: EdgeInsets.only(top: 15.h),
+                      child: const Center(
                         child: CircularProgressIndicator(),
                       ),
                     );
-                  });
+                  }
+                  if (flutterIssueList.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 15.h),
+                        child: const Text(
+                          "No Data Found!",
+                        ),
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    itemBuilder: (context, index) {
+                      if (index == flutterIssueList.length && isLoading) {
+                        return const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      } else {
+                        return ListTileWidget(flutterIssueModel: flutterIssueList[index]);
+                      }
+                    },
+                    itemCount: flutterIssueList.length + (isLoading ? 1 : 0),
+                    shrinkWrap: true,
+                    primary: false,
+                    separatorBuilder: (BuildContext context, int index) {
+                      return Container(
+                        height: 1.sp,
+                        decoration: const BoxDecoration(
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                  );
                 },
               )
             ],
@@ -182,42 +241,5 @@ class _FlutterListIssueScreenState extends ConsumerState<FlutterListIssueScreen>
         ),
       ),
     );
-  }
-
-  String convertToShortString(String inputString) {
-    if (inputString.length <= 25) {
-      return inputString; // No need to convert, return the original string.
-    } else {
-      return '${inputString.substring(0, 22)}...'; // Clip the string and add "..." at the end.
-    }
-  }
-
-  Color hexStringToColor(String hexColor) {
-    // Remove the '#' character if it exists
-    hexColor = hexColor.replaceAll("#", "");
-
-    // Parse the hexadecimal color string to an integer
-    int hexValue = int.parse(hexColor, radix: 16);
-
-    // Create a Color object
-    return Color(hexValue | 0xFF000000);
-  }
-
-  String convertDateFormat(String originalDateString) {
-    if (originalDateString.isNotEmpty) {
-      try {
-        // Parse the original date string to DateTime
-        DateTime originalDate = DateTime.parse(originalDateString);
-
-        // Format the date using the intl package
-        String formattedDateString = DateFormat('MM/dd/yyyy').format(originalDate);
-
-        return formattedDateString;
-      } catch (e, s) {
-        debugPrint(e.toString());
-        debugPrint(s.toString());
-      }
-    }
-    return '';
   }
 }

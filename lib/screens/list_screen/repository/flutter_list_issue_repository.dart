@@ -16,13 +16,13 @@ class FlutterListIssueRepository {
     );
     try {
       returnedDataModel = await GlobalHttp(
-              uri: Urls.getFlutterIssueListUrl(
-                pageNo: pageNo,
-                perPage: perPage,
-              ),
-              httpType: HttpType.get,
-              accessToken: apiBearerToken)
-          .fetch();
+        uri: Urls.getFlutterIssueListUrl(
+          pageNo: pageNo,
+          perPage: perPage,
+        ),
+        httpType: HttpType.get,
+        accessToken: apiBearerToken,
+      ).fetch();
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());

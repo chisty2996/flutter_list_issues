@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_list_issues/screens/list_screen/controller/flutter_issue_list_controller.dart';
 import 'package:flutter_list_issues/screens/list_screen/ui/flutter_list_issue_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sizer/sizer.dart';
 
-class SplashScreenUI extends StatefulWidget {
+class SplashScreenUI extends ConsumerStatefulWidget {
   static const routeName = "splash_screen_ui";
   const SplashScreenUI({super.key});
 
   @override
-  State<SplashScreenUI> createState() => _SplashScreenUIState();
+  ConsumerState<SplashScreenUI> createState() => _SplashScreenUIState();
 }
 
-class _SplashScreenUIState extends State<SplashScreenUI> {
+class _SplashScreenUIState extends ConsumerState<SplashScreenUI> {
   @override
   void initState(){
     super.initState();
     Future.delayed(const Duration(seconds: 2)).then((value) {
-      Navigator.pushNamed(context, FlutterListIssueScreen.routeName);
+        Navigator.pushNamed(context, FlutterListIssueScreen.routeName);
     });
   }
 
