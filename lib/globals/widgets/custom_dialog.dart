@@ -10,7 +10,7 @@ class Alerts {
 
   void snackBar({
     required String massage,
-    int duration = 3,
+    int duration = 1,
     bool isSuccess = true,
   }) {
     ScaffoldMessenger.of(context).showSnackBar(

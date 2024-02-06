@@ -18,64 +18,71 @@ class _ListTileWidgetState extends State<ListTileWidget> {
     return Container(
       decoration: const BoxDecoration(color: Colors.white),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
+        padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 50.w,
-                      child: Text(
-                        widget.flutterIssueModel.title,
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        // width: 50.w,
+                        child: Text(
+                          widget.flutterIssueModel.title,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5.sp,
+                      ),
+                      Text(
+                        utils.convertToShortString(widget.flutterIssueModel.body),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        utils.convertDateFormat(widget.flutterIssueModel.creationDate),
                         style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 5.sp,
-                    ),
-                    Text(
-                      utils.convertToShortString(widget.flutterIssueModel.body),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                      SizedBox(
+                        height: 5.sp,
                       ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      utils.convertDateFormat(widget.flutterIssueModel.creationDate),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                      Text(
+                        widget.flutterIssueModel.authorName,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.right,
                       ),
-                    ),
-                    SizedBox(
-                      height: 5.sp,
-                    ),
-                    Text(
-                      widget.flutterIssueModel.authorName,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -83,7 +90,7 @@ class _ListTileWidgetState extends State<ListTileWidget> {
               height: 1.h,
             ),
             SizedBox(
-              width: 80.w,
+              width: 100.w,
               height: 5.h,
               child: ListView.builder(
                 itemBuilder: (context, index1) {
