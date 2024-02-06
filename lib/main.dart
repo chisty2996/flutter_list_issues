@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_list_issues/routes/route_generator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sizer/sizer.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 //route observer
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async{
+  await dotenv.load(
+    fileName: '.env'
+  );
   runApp(
     const ProviderScope(
       child: MyApp(),
